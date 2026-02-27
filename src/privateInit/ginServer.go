@@ -2,8 +2,8 @@ package privateInit
 
 import (
 	"KimJin/src/config"
-	"KimJin/src/internal/api"
 	"KimJin/src/internal/middleware"
+	"KimJin/src/internal/router"
 	"fmt"
 	"github.com/gin-gonic/gin"
 )
@@ -25,19 +25,21 @@ func GinRun(addr string, port int) {
 	r.Use(middleware.Cors())     // 跨域中间件
 	r.Use(middleware.Recovery()) // 异常恢复中间件
 
-	// 注册控制器和路由
-	formCtrl := api.NewFormController()
-	apiGroup := r.Group("/api")
+	baseGroup := r.Group("/")
 	{
-		formGroup := apiGroup.Group("/form")
-		{
-			formGroup.GET("/config/:formId", formCtrl.GetFormConfig)
-			formGroup.POST("/submit", formCtrl.SubmitForm)
-			// 新增查询路由
-			formGroup.GET("/submissions/:formId", formCtrl.GetFormSubmissions)
-			formGroup.GET("/submission/:id", formCtrl.GetFormSubmissionByID)
-		}
+		router.FormRouter(baseGroup)
 	}
+
+	// todo 后续新增登陆路由，登陆路由为私有路由
+	//publicGroup := r.Group("/public")
+	//{
+	//	router.FormRouter(publicGroup)
+	//}
+	//
+	//privateGroup := r.Group("/private")
+	//{
+	//	router.FormRouter(privateGroup)
+	//}
 
 	fmt.Printf("服务启动成功，监听端口：%d\n", port)
 	if err := r.Run(fmt.Sprintf("%s:%d", addr, port)); err != nil {

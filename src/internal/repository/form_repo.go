@@ -5,7 +5,6 @@ import (
 	"KimJin/src/pkg/db"
 )
 
-// FormRepo 表单相关数据访问
 type FormRepo struct{}
 
 // GetFormConfigByFormID 根据FormID获取表单配置

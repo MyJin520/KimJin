@@ -20,10 +20,6 @@ func NewFormController() *FormController {
 }
 
 // GetFormConfig 获取表单配置
-// @Summary 获取动态表单配置
-// @Param formId path string true "表单ID"
-// @Success 200 {object} response.Response
-// @Router /api/form/config/{formId} [get]
 func (c *FormController) GetFormConfig(ctx *gin.Context) {
 	formID := ctx.Param("formId")
 	config, err := c.formService.GetFormConfig(formID)
@@ -35,12 +31,6 @@ func (c *FormController) GetFormConfig(ctx *gin.Context) {
 }
 
 // SubmitForm 提交表单数据
-// @Summary 提交动态表单数据
-// @Accept json
-// @Param form_id body string true "表单ID"
-// @Param data body string true "表单数据（JSON字符串）"
-// @Success 200 {object} response.Response
-// @Router /api/form/submit [post]
 func (c *FormController) SubmitForm(ctx *gin.Context) {
 	// 定义接收参数的结构体
 	type SubmitRequest struct {
@@ -65,10 +55,6 @@ func (c *FormController) SubmitForm(ctx *gin.Context) {
 }
 
 // GetFormSubmissions 查询表单提交记录
-// @Summary 查询动态表单提交记录
-// @Param formId path string true "表单ID"
-// @Success 200 {object} response.Response
-// @Router /api/form/submissions/{formId} [get]
 func (c *FormController) GetFormSubmissions(ctx *gin.Context) {
 	formID := ctx.Param("formId")
 	submissions, err := c.formService.GetFormSubmissions(formID)
@@ -80,10 +66,6 @@ func (c *FormController) GetFormSubmissions(ctx *gin.Context) {
 }
 
 // GetFormSubmissionByID 查询单条提交记录
-// @Summary 查询单条表单提交记录
-// @Param id path uint true "提交记录ID"
-// @Success 200 {object} response.Response
-// @Router /api/form/submission/{id} [get]
 func (c *FormController) GetFormSubmissionByID(ctx *gin.Context) {
 	// 解析ID参数
 	idStr := ctx.Param("id")

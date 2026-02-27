@@ -1,7 +1,7 @@
 app:
   name: "go-web-framework"
-  addr: "localhost"
-  port: 9001
+  addr: "0.0.0.0"
+  port: 8080
   env: "dev"  # dev/prod
 
 database:

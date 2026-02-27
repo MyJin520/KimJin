@@ -34,7 +34,7 @@ func (s *FormService) SubmitForm(formID, data string) (uint, error) {
 	return submission.ID, nil
 }
 
-// InitDefaultConfig 初始化默认配置
+// 初始化默认配置 --> todo 后续需要删除
 func (s *FormService) InitDefaultConfig() error {
 	return s.repo.InitDefaultFormConfig()
 }
