@@ -264,8 +264,8 @@
 
     try {
       // 调用后端获取表单配置接口
-      console.log(`请求表单配置：${BASE_URL}/api/form/config/${FORM_ID}`);
-      const response = await fetch(`${BASE_URL}/api/form/config/${FORM_ID}`, {
+      console.log(`请求表单配置：${BASE_URL}/form/config/${FORM_ID}`);
+      const response = await fetch(`${BASE_URL}/form/config/${FORM_ID}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -464,8 +464,8 @@
       console.log("提交给后端的参数：", submitData);
 
       // 4. 调用后端提交接口
-      console.log(`请求提交接口：${BASE_URL}/api/form/submit`);
-      const response = await fetch(`${BASE_URL}/api/form/submit`, {
+      console.log(`请求提交接口：${BASE_URL}/form/submit`);
+      const response = await fetch(`${BASE_URL}/form/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json", // 必须指定JSON格式
@@ -535,8 +535,8 @@
 
     try {
       // 调用查询接口
-      console.log(`请求查询记录接口：${BASE_URL}/api/form/submissions/${FORM_ID}`);
-      const response = await fetch(`${BASE_URL}/api/form/submissions/${FORM_ID}`, {
+      console.log(`请求查询记录接口：${BASE_URL}/form/submissions/${FORM_ID}`);
+      const response = await fetch(`${BASE_URL}/form/submissions/${FORM_ID}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

@@ -1,43 +1,75 @@
 package response
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"net/http"
+	"net/url"
+	"strconv"
 
-// Response 统一响应结构体
+	"github.com/gin-gonic/gin"
+)
+
 type Response struct {
-	Code int         `json:"code"` // 状态码：200成功，其他失败
-	Msg  string      `json:"msg"`  // 提示信息
-	Data interface{} `json:"data"` // 业务数据
+	Code    int         `json:"code"`
+	Data    interface{} `json:"data"`
+	Message string      `json:"message"`
 }
 
-// Success 成功响应
-func Success(c *gin.Context, data interface{}) {
-	c.JSON(200, Response{
-		Code: 200,
-		Msg:  "操作成功",
-		Data: data,
+const (
+	EXPIRE_CODE = 401
+	ERROR       = 7
+	SUCCESS     = 200
+)
+
+func Result(code int, data interface{}, msg string, c *gin.Context) {
+	// 开始时间
+	c.JSON(http.StatusOK, Response{
+		code,
+		data,
+		msg,
 	})
 }
 
-// Fail 失败响应
-func Fail(c *gin.Context, code int, msg string) {
-	c.JSON(200, Response{ // HTTP状态码统一200，业务码区分
-		Code: code,
-		Msg:  msg,
-		Data: nil,
+func DownloadFile(filepath, filename string, c *gin.Context) {
+	c.FileAttachment(filepath, filename)
+}
+
+func FailWithMessage(c *gin.Context, message string) {
+	Result(ERROR, map[string]interface{}{}, message, c)
+}
+
+func OkWithMessage(c *gin.Context, message string) {
+	Result(SUCCESS, map[string]interface{}{}, message, c)
+}
+
+func OkWithDetailed(c *gin.Context, message string, data interface{}) {
+	Result(SUCCESS, data, message, c)
+}
+
+// JWT使用
+func NoAuth(c *gin.Context, message string) {
+	c.JSON(http.StatusUnauthorized, Response{
+		EXPIRE_CODE,
+		nil,
+		message,
 	})
 }
-
-// NotFound 资源不存在响应
-func NotFound(c *gin.Context, msg string) {
-	Fail(c, 404, msg)
+func FailWithDetailed(c *gin.Context, message string, data interface{}) {
+	Result(ERROR, data, message, c)
 }
 
-// BadRequest 参数错误响应
-func BadRequest(c *gin.Context, msg string) {
-	Fail(c, 400, msg)
-}
+func OkSendByteDate(rawFileName string, data []byte, c *gin.Context) {
+	encodedFileName := url.QueryEscape(rawFileName)
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"; filename*=UTF-8''%s", encodedFileName, encodedFileName))
+	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+	c.Header("Content-Length", strconv.Itoa(len(data)))
+	c.Header("Access-Control-Expose-Headers", "Content-Disposition")
+	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+	c.Header("Pragma", "no-cache")
+	c.Header("Expires", "0")
 
-// ServerError 服务器内部错误响应
-func ServerError(c *gin.Context, msg string) {
-	Fail(c, 500, msg)
+	_, err := c.Writer.Write(data)
+	if err != nil {
+		FailWithMessage(c, "文件下载响应失败")
+	}
 }

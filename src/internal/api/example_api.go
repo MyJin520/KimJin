@@ -24,10 +24,10 @@ func (c *FormController) GetFormConfig(ctx *gin.Context) {
 	formID := ctx.Param("formId")
 	config, err := c.formService.GetFormConfig(formID)
 	if err != nil {
-		response.NotFound(ctx, "表单配置不存在")
+		response.FailWithMessage(ctx, "表单配置不存在")
 		return
 	}
-	response.Success(ctx, config)
+	response.OkWithDetailed(ctx, "表单配置获取成功", config)
 }
 
 // SubmitForm 提交表单数据
@@ -40,18 +40,18 @@ func (c *FormController) SubmitForm(ctx *gin.Context) {
 
 	var req SubmitRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(ctx, "参数错误："+err.Error())
+		response.FailWithMessage(ctx, "参数错误："+err.Error())
 		return
 	}
 
 	// 调用服务层提交数据
 	submissionID, err := c.formService.SubmitForm(req.FormID, req.Data)
 	if err != nil {
-		response.ServerError(ctx, "提交失败："+err.Error())
+		response.FailWithMessage(ctx, "提交失败："+err.Error())
 		return
 	}
 
-	response.Success(ctx, gin.H{"submission_id": submissionID})
+	response.OkWithDetailed(ctx, "提交成功", gin.H{"submission_id": submissionID})
 }
 
 // GetFormSubmissions 查询表单提交记录
@@ -59,10 +59,10 @@ func (c *FormController) GetFormSubmissions(ctx *gin.Context) {
 	formID := ctx.Param("formId")
 	submissions, err := c.formService.GetFormSubmissions(formID)
 	if err != nil {
-		response.ServerError(ctx, "查询失败："+err.Error())
+		response.FailWithMessage(ctx, "查询失败："+err.Error())
 		return
 	}
-	response.Success(ctx, submissions)
+	response.OkWithDetailed(ctx, "查询成功", submissions)
 }
 
 // GetFormSubmissionByID 查询单条提交记录
@@ -71,14 +71,14 @@ func (c *FormController) GetFormSubmissionByID(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		response.BadRequest(ctx, "ID格式错误")
+		response.FailWithMessage(ctx, "ID格式错误")
 		return
 	}
 
 	submission, err := c.formService.GetFormSubmissionByID(uint(id))
 	if err != nil {
-		response.NotFound(ctx, "提交记录不存在")
+		response.FailWithMessage(ctx, "提交记录不存在")
 		return
 	}
-	response.Success(ctx, submission)
+	response.OkWithDetailed(ctx, "查询成功", submission)
 }
