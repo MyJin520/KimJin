@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>动态表单测试</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Microsoft Yahei", sans-serif;
+    }
+    .container {
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    h1 {
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    h2 {
+      color: #444;
+      font-size: 18px;
+      margin: 30px 0 15px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eee;
+    }
+    .form-item {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 500;
+    }
+    label.required::after {
+      content: "*";
+      color: #ff4444;
+      margin-left: 4px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #409eff;
+      box-shadow: 0 0 0 2px rgba(64,158,255,0.2);
+    }
+    .dynamic-field {
+      display: none;
+    }
+    button {
+      padding: 10px 24px;
+      background-color: #409eff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      margin-right: 10px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #337ecc;
+    }
+    button:disabled {
+      background-color: #b3d8ff;
+      cursor: not-allowed;
+    }
+    button.secondary {
+      background-color: #67c23a;
+    }
+    button.secondary:hover {
+      background-color: #529e2e;
+    }
+    button.toggle-btn {
+      padding: 5px 10px;
+      background-color: #909399;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+    button.toggle-btn:hover {
+      background-color: #73767a;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      display: none;
+    }
+    .success {
+      background-color: #f0f9ff;
+      color: #67c23a;
+      border: 1px solid #e1f3d8;
+    }
+    .error {
+      background-color: #fef0f0;
+      color: #f56c6c;
+      border: 1px solid #fbc4c4;
+    }
+    .loading {
+      color: #909399;
+      margin: 10px 0;
+    }
+    .debug-info {
+      margin-top: 15px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #666;
+      display: none;
+    }
+    /* 提交记录样式 */
+    .submission-container {
+      margin-top: 20px;
+      display: none;
+    }
+    .submission-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      background-color: #f8f9fa;
+      border: 1px solid #eee;
+      border-radius: 4px 4px 0 0;
+    }
+    .submission-info {
+      font-weight: 500;
+      color: #333;
+    }
+    /* 动态表单样式（和填写表单一致） */
+    .submission-form {
+      padding: 20px;
+      border: 1px solid #eee;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+    }
+    .submission-form-item {
+      margin-bottom: 15px;
+    }
+    .submission-form-label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 500;
+      font-size: 14px;
+    }
+    .submission-form-value {
+      padding: 8px 10px;
+      background-color: #f8f9fa;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #333;
+      min-height: 36px;
+      line-height: 1.5;
+    }
+    .empty-tip {
+      padding: 20px;
+      text-align: center;
+      color: #909399;
+      font-size: 14px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+    }
+    .error-tip {
+      padding: 20px;
+      text-align: center;
+      color: #f56c6c;
+      font-size: 14px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>动态表单测试</h1>
+
+  <!-- 加载提示 -->
+  <div class="loading" id="loading">正在加载表单配置...</div>
+
+  <!-- 表单容器 -->
+  <div id="formContainer" style="display: none;"></div>
+
+  <!-- 操作按钮 -->
+  <div style="margin-top: 20px;">
+    <button id="submitBtn" onclick="submitForm()" disabled>提交表单</button>
+    <button id="viewBtn" class="secondary" onclick="viewSubmissions()">查看提交记录</button>
+  </div>
+
+  <!-- 结果反馈 -->
+  <div class="result" id="result"></div>
+
+  <!-- 调试信息（方便排查问题） -->
+  <div class="debug-info" id="debugInfo"></div>
+
+  <!-- 提交记录区域 -->
+  <h2 id="submissionTitle" style="display: none;">表单提交记录</h2>
+  <div class="loading" id="submissionLoading" style="display: none;">正在加载提交记录...</div>
+
+  <!-- 优化后的提交记录容器 -->
+  <div class="submission-container" id="submissionContainer">
+    <!-- 记录切换栏 -->
+    <div class="submission-header-bar">
+      <div class="submission-info" id="currentSubmissionInfo">提交ID：1 | 提交时间：未知时间 (共4条，当前第1条)</div>
+      <div>
+        <button class="toggle-btn" id="prevBtn" onclick="showPrevSubmission()" disabled>上一条</button>
+        <button class="toggle-btn" id="nextBtn" onclick="showNextSubmission()" disabled>下一条</button>
+      </div>
+    </div>
+    <!-- 动态表单展示提交记录 -->
+    <div class="submission-form" id="submissionForm">
+      <!-- 动态填充表单内容 -->
+    </div>
+  </div>
+
+  <!-- 空记录提示 -->
+  <div class="empty-tip" id="emptyTip" style="display: none;">暂无提交记录</div>
+  <!-- 查询失败提示 -->
+  <div class="error-tip" id="errorTip" style="display: none;"></div>
+</div>
+
+<script>
+  // 后端接口基础地址
+  const BASE_URL = "http://localhost:8080";
+  // 要测试的表单ID
+  const FORM_ID = "payment_form";
+  // 存储表单配置
+  let formConfig = null;
+  let formFields = [];
+  // 存储提交记录和当前显示索引
+  let allSubmissions = [];
+  let currentSubmissionIndex = 0;
+
+  // 页面加载后初始化
+  window.onload = async function() {
+    await loadFormConfig();
+  };
+
+  /**
+   * 加载表单配置（调用后端接口）
+   */
+  async function loadFormConfig() {
+    const loadingEl = document.getElementById("loading");
+    const formContainer = document.getElementById("formContainer");
+    const submitBtn = document.getElementById("submitBtn");
+
+    try {
+      // 调用后端获取表单配置接口
+      console.log(`请求表单配置：${BASE_URL}/api/form/config/${FORM_ID}`);
+      const response = await fetch(`${BASE_URL}/api/form/config/${FORM_ID}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        mode: "cors" // 显式指定跨域模式
+      });
+
+      // 打印原始响应（调试用）
+      console.log("配置接口响应状态：", response.status);
+      const resData = await response.json();
+      console.log("配置接口返回数据：", resData);
+
+      if (resData.code !== 200) {
+        throw new Error(resData.msg || "获取表单配置失败");
+      }
+
+      // 保存配置并解析字段
+      formConfig = resData.data;
+      formFields = JSON.parse(formConfig.fields);
+
+      // 渲染表单
+      renderForm();
+
+      // 更新UI状态
+      loadingEl.style.display = "none";
+      formContainer.style.display = "block";
+      submitBtn.disabled = false;
+    } catch (error) {
+      console.error("加载配置失败：", error);
+      loadingEl.innerText = `加载失败：${error.message}`;
+      loadingEl.style.color = "#f56c6c";
+    }
+  }
+
+  /**
+   * 根据配置渲染填写用的表单
+   */
+  function renderForm() {
+    const container = document.getElementById("formContainer");
+    container.innerHTML = "";
+
+    // 遍历字段配置生成表单元素
+    formFields.forEach(field => {
+      // 创建表单项容器
+      const formItem = document.createElement("div");
+      formItem.className = "form-item";
+
+      // 动态字段标记（用于联动控制）
+      if (field.showIf) {
+        formItem.classList.add("dynamic-field");
+        formItem.dataset.condition = JSON.stringify(field.showIf);
+        formItem.dataset.fieldName = field.name;
+      }
+
+      // 创建标签
+      const label = document.createElement("label");
+      label.innerText = field.label;
+      if (field.required) {
+        label.classList.add("required");
+      }
+      label.setAttribute("for", field.name);
+      formItem.appendChild(label);
+
+      // 根据字段类型创建输入控件
+      let inputEl;
+      switch (field.type) {
+        case "select":
+          inputEl = createSelectField(field);
+          break;
+        case "text":
+          inputEl = createTextField(field);
+          break;
+        default:
+          inputEl = createTextField(field); // 默认用文本框
+          break;
+      }
+
+      formItem.appendChild(inputEl);
+      container.appendChild(formItem);
+    });
+  }
+
+  /**
+   * 创建下拉选择框（填写表单用）
+   * @param {object} field 字段配置
+   */
+  function createSelectField(field) {
+    const select = document.createElement("select");
+    select.id = field.name;
+    select.name = field.name;
+
+    // 添加默认空选项
+    const emptyOption = document.createElement("option");
+    emptyOption.value = "";
+    emptyOption.innerText = "请选择";
+    select.appendChild(emptyOption);
+
+    // 添加配置的选项
+    if (field.options && field.optionLabels) {
+      field.options.forEach((value, index) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.innerText = field.optionLabels[index] || value;
+        select.appendChild(option);
+      });
+    }
+
+    // 监听选择变化，控制动态字段显示
+    select.addEventListener("change", updateDynamicFields);
+
+    return select;
+  }
+
+  /**
+   * 创建文本输入框（填写表单用）
+   * @param {object} field 字段配置
+   */
+  function createTextField(field) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = field.name;
+    input.name = field.name;
+    input.placeholder = `请输入${field.label}`;
+    if (field.required) {
+      input.required = true;
+    }
+    return input;
+  }
+
+  /**
+   * 根据条件更新填写表单的动态字段显示/隐藏
+   */
+  function updateDynamicFields() {
+    // 获取支付方式的值（核心联动字段）
+    const payType = document.getElementById("payType")?.value || "";
+    console.log("当前选择的支付方式：", payType);
+
+    // 遍历所有动态字段，判断是否显示
+    document.querySelectorAll(".dynamic-field").forEach(item => {
+      const condition = JSON.parse(item.dataset.condition);
+      let shouldShow = false;
+
+      // 匹配显示条件（这里只处理payType的条件，可扩展）
+      if (condition.payType === payType) {
+        shouldShow = true;
+      }
+
+      item.style.display = shouldShow ? "block" : "none";
+      console.log(`字段${item.dataset.fieldName}显示状态：`, shouldShow);
+    });
+  }
+
+  /**
+   * 提交表单数据（调用后端接口）
+   */
+  async function submitForm() {
+    const submitBtn = document.getElementById("submitBtn");
+    const resultEl = document.getElementById("result");
+    const debugEl = document.getElementById("debugInfo");
+
+    // 重置结果和调试信息
+    resultEl.style.display = "none";
+    debugEl.style.display = "none";
+    debugEl.innerText = "";
+
+    // 禁用按钮防止重复提交
+    submitBtn.disabled = true;
+
+    try {
+      // 1. 收集表单数据
+      const formData = {};
+      formFields.forEach(field => {
+        const el = document.getElementById(field.name);
+        if (el) {
+          formData[field.name] = el.value;
+        }
+      });
+      console.log("收集到的表单数据：", formData);
+
+      // 2. 基础必填项校验
+      for (const field of formFields) {
+        // 只校验当前显示的必填字段
+        const fieldEl = document.getElementById(field.name);
+        const isFieldVisible = fieldEl && fieldEl.closest(".form-item").style.display !== "none";
+
+        if (field.required && isFieldVisible && !formData[field.name]) {
+          throw new Error(`请填写${field.label}`);
+        }
+      }
+
+      // 3. 构造提交参数
+      const submitData = {
+        form_id: FORM_ID,
+        data: JSON.stringify(formData)
+      };
+      console.log("提交给后端的参数：", submitData);
+
+      // 4. 调用后端提交接口
+      console.log(`请求提交接口：${BASE_URL}/api/form/submit`);
+      const response = await fetch(`${BASE_URL}/api/form/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", // 必须指定JSON格式
+        },
+        mode: "cors", // 跨域模式
+        body: JSON.stringify(submitData)
+      });
+
+      // 5. 解析响应
+      console.log("提交接口响应状态：", response.status);
+      const resData = await response.json();
+      console.log("提交接口返回数据：", resData);
+
+      // 6. 展示调试信息
+      debugEl.style.display = "block";
+      debugEl.innerText = `
+提交接口状态码：${response.status}
+提交参数：${JSON.stringify(submitData, null, 2)}
+后端返回：${JSON.stringify(resData, null, 2)}
+                `;
+
+      // 7. 处理响应结果
+      resultEl.style.display = "block";
+      if (resData.code === 200) {
+        resultEl.className = "result success";
+        resultEl.innerText = `✅ 提交成功！
+提交ID：${resData.data.submission_id || resData.data}
+提交数据：${JSON.stringify(formData, null, 2)}`;
+      } else {
+        throw new Error(resData.msg || "提交失败，后端返回非200状态码");
+      }
+
+    } catch (error) {
+      // 展示错误信息
+      console.error("提交失败：", error);
+      resultEl.className = "result error";
+      resultEl.innerText = `❌ 提交失败：${error.message}`;
+      // 显示调试信息
+      debugEl.style.display = "block";
+      debugEl.innerText = `错误详情：${error.stack || error.message}`;
+    } finally {
+      // 恢复按钮状态
+      submitBtn.disabled = false;
+    }
+  }
+
+  /**
+   * 查看表单提交记录
+   */
+  async function viewSubmissions() {
+    const submissionTitle = document.getElementById("submissionTitle");
+    const submissionLoading = document.getElementById("submissionLoading");
+    const submissionContainer = document.getElementById("submissionContainer");
+    const emptyTip = document.getElementById("emptyTip");
+    const errorTip = document.getElementById("errorTip");
+
+    // 重置所有状态
+    submissionContainer.style.display = "none";
+    emptyTip.style.display = "none";
+    errorTip.style.display = "none";
+    allSubmissions = [];
+    currentSubmissionIndex = 0;
+
+    // 显示加载状态
+    submissionTitle.style.display = "block";
+    submissionLoading.style.display = "block";
+
+    try {
+      // 调用查询接口
+      console.log(`请求查询记录接口：${BASE_URL}/api/form/submissions/${FORM_ID}`);
+      const response = await fetch(`${BASE_URL}/api/form/submissions/${FORM_ID}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        mode: "cors"
+      });
+
+      const resData = await response.json();
+      console.log("查询记录返回数据：", resData);
+
+      if (resData.code !== 200) {
+        throw new Error(resData.msg || "查询提交记录失败");
+      }
+
+      // 隐藏加载状态
+      submissionLoading.style.display = "none";
+
+      // 处理查询结果
+      allSubmissions = resData.data;
+      if (allSubmissions.length === 0) {
+        // 无记录提示
+        emptyTip.style.display = "block";
+        return;
+      }
+
+      // 初始化显示第一条记录（动态表单形式）
+      renderSubmissionAsForm(currentSubmissionIndex);
+      updateNavigationButtons();
+      submissionContainer.style.display = "block";
+
+    } catch (error) {
+      console.error("查询记录失败：", error);
+      submissionLoading.style.display = "none";
+      errorTip.style.display = "block";
+      errorTip.innerText = `查询失败：${error.message}`;
+    }
+  }
+
+  /**
+   * 以动态表单形式渲染提交记录（核心优化）
+   * @param {number} index 记录索引
+   */
+  function renderSubmissionAsForm(index) {
+    if (index < 0 || index >= allSubmissions.length) return;
+
+    const submission = allSubmissions[index];
+    const currentSubmissionInfo = document.getElementById("currentSubmissionInfo");
+    const submissionForm = document.getElementById("submissionForm");
+
+    // 解析提交数据
+    let formData = {};
+    try {
+      formData = JSON.parse(submission.data);
+    } catch (e) {
+      formData = { "解析错误": "无法解析提交数据" };
+    }
+
+    // 格式化时间（使用 created_at 字段，而非 submit_time）
+    let submitTime = "未知时间";
+    if (submission.created_at) {
+      // 兼容Go后端返回的时间格式（如2026-02-27 13:48:39.000）
+      const timeObj = new Date(submission.created_at);
+      if (!isNaN(timeObj.getTime())) {
+        submitTime = timeObj.toLocaleString(); // 转为本地时间格式
+      }
+    }
+
+    // 更新顶部信息栏
+    currentSubmissionInfo.innerText = `提交ID：${submission.id} | 提交时间：${submitTime} (共${allSubmissions.length}条，当前第${index+1}条)`;
+
+    // 清空表单容器
+    submissionForm.innerHTML = "";
+
+    // 遍历表单配置字段，按动态规则渲染
+    formFields.forEach(field => {
+      // 创建展示用的表单项
+      const formItem = document.createElement("div");
+      formItem.className = "submission-form-item";
+      formItem.dataset.fieldName = field.name;
+
+      // 处理动态字段的显示规则
+      if (field.showIf) {
+        formItem.classList.add("dynamic-field");
+        formItem.dataset.condition = JSON.stringify(field.showIf);
+      }
+
+      // 字段标签
+      const labelEl = document.createElement("div");
+      labelEl.className = "submission-form-label";
+      labelEl.innerText = field.label;
+      formItem.appendChild(labelEl);
+
+      // 字段值容器
+      const valueEl = document.createElement("div");
+      valueEl.className = "submission-form-value";
+
+      // 获取字段值并格式化（支付方式转中文）
+      let fieldValue = formData[field.name] || "";
+      if (field.name === "payType") {
+        fieldValue = fieldValue === "creditCard" ? "信用卡" : (fieldValue === "alipay" ? "支付宝" : fieldValue);
+      }
+      valueEl.innerText = fieldValue || "- 无数据 -";
+
+      formItem.appendChild(valueEl);
+      submissionForm.appendChild(formItem);
+    });
+
+    // 执行动态字段显示控制（和填写表单时的逻辑一致）
+    updateSubmissionDynamicFields(formData.payType || "");
+  }
+
+  /**
+   * 控制提交记录展示时的动态字段显示/隐藏（和填写表单逻辑一致）
+   * @param {string} payType 当前记录的支付方式值
+   */
+  function updateSubmissionDynamicFields(payType) {
+    console.log("当前记录的支付方式：", payType);
+
+    // 遍历所有动态字段，判断是否显示
+    document.querySelectorAll("#submissionForm .dynamic-field").forEach(item => {
+      const condition = JSON.parse(item.dataset.condition);
+      let shouldShow = false;
+
+      // 匹配显示条件（payType相等时显示）
+      if (condition.payType === payType) {
+        shouldShow = true;
+      }
+
+      item.style.display = shouldShow ? "block" : "none";
+      console.log(`记录字段${item.dataset.fieldName}显示状态：`, shouldShow);
+    });
+  }
+
+  /**
+   * 更新上一条/下一条按钮状态
+   */
+  function updateNavigationButtons() {
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    // 上一条按钮：只有当前不是第一条时可用
+    prevBtn.disabled = (currentSubmissionIndex === 0);
+    // 下一条按钮：只有当前不是最后一条时可用
+    nextBtn.disabled = (currentSubmissionIndex === allSubmissions.length - 1);
+  }
+
+  /**
+   * 显示上一条记录
+   */
+  function showPrevSubmission() {
+    if (currentSubmissionIndex > 0) {
+      currentSubmissionIndex--;
+      renderSubmissionAsForm(currentSubmissionIndex);
+      updateNavigationButtons();
+    }
+  }
+
+  /**
+   * 显示下一条记录
+   */
+  function showNextSubmission() {
+    if (currentSubmissionIndex < allSubmissions.length - 1) {
+      currentSubmissionIndex++;
+      renderSubmissionAsForm(currentSubmissionIndex);
+      updateNavigationButtons();
+    }
+  }
+</script>
+</body>
+</html>
