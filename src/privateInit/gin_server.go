@@ -4,8 +4,10 @@ import (
 	"KimJin/src/config"
 	"KimJin/src/internal/middleware"
 	"KimJin/src/internal/router"
+	"KimJin/src/pkg/logger"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func GinRun(addr string, port int) {
@@ -41,7 +43,7 @@ func GinRun(addr string, port int) {
 	//	router.FormRouter(privateGroup)
 	//}
 
-	fmt.Printf("服务启动成功，监听端口：%d\n", port)
+	logger.Info("服务启动成功，监听地址：", zap.Any("addr", addr), zap.Any("port", port))
 	if err := r.Run(fmt.Sprintf("%s:%d", addr, port)); err != nil {
 		panic(fmt.Sprintf("服务启动失败: %v", err))
 	}

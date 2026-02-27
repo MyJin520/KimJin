@@ -2,8 +2,10 @@ package api
 
 import (
 	"KimJin/src/internal/service"
+	"KimJin/src/pkg/logger"
 	"KimJin/src/pkg/response"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"strconv"
 )
 
@@ -24,6 +26,7 @@ func (c *FormController) GetFormConfig(ctx *gin.Context) {
 	formID := ctx.Param("formId")
 	config, err := c.formService.GetFormConfig(formID)
 	if err != nil {
+		logger.Error("获取表单配置失败", zap.Error(err))
 		response.FailWithMessage(ctx, "表单配置不存在")
 		return
 	}
