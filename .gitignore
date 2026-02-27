@@ -1,9 +1,10 @@
 # 目录
 .idea
-./src/loggs
+
 
 
 # 文件
 KimJin.iml
 *.db
 go.sum
+*.log
