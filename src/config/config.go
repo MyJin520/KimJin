@@ -10,6 +10,7 @@ import (
 type Config struct {
 	App      AppConfig      `mapstructure:"app"`
 	Database DatabaseConfig `mapstructure:"database"`
+	Jwt      JwtConfig      `mapstructure:"jwt"`
 }
 
 // GlobalConfig 全局配置实例

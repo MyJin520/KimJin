@@ -2,9 +2,17 @@ app:
   name: "go-web-framework"
   addr: "0.0.0.0"
   port: 8080
-  env: "dev"  # dev/prod
+  env: "dev"
+  defaultUser: default
+  defaultPassword: "123456"
 
 database:
   driver: "sqlite"
   path: "./data.db"  # SQLite数据库文件路径
   debug: true        # dev环境开启SQL日志
+
+jwt:
+  key: "hello welcome use JinYu System"
+  expire: 24
+
+

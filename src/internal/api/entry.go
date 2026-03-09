@@ -1,5 +1,8 @@
 package api
 
+import "KimJin/src/internal/api/base"
+
 var (
-	FormAPI = NewFormController()
+	FormAPI   = NewFormController()
+	PublicAPI = base.NewPublicController()
 )
